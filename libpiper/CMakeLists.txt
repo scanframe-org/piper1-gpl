@@ -207,15 +207,6 @@ target_link_libraries(piper
     onnxruntime::onnxruntime
 )
 
-# Only export the Piper API functions.
-if(MSVC)
-    # Target properties specifically for MSVC.
-    set_target_properties(piper PROPERTIES LINK_FLAGS "/DEF:\"${CMAKE_CURRENT_SOURCE_DIR}/exports.def\"")
-else()
-    # Target properties for GCC / Linux.
-    target_link_options(piper PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/exports.sym")
-endif()
-
 # ---- libpiper static ---
 
 add_library(piper-static STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/piper.cpp)
@@ -241,7 +232,6 @@ target_link_libraries(piper-static
     ${UCD_STATIC_LIB}
     onnxruntime::onnxruntime
 )
-
 
 # ---- piper exe ---
 add_subdirectory(src/main)

@@ -1,8 +1,0 @@
-LIBRARY piper
-EXPORTS
-	piper_version
-	piper_synthesize_next
-	piper_synthesize_start
-	piper_default_synthesize_options
-	piper_free
-	piper_create
