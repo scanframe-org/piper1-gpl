@@ -35,15 +35,25 @@ else()
     set(UCD_STATIC_LIB ${ESPEAKNG_BUILD_DIR}/src/espeak_ng_external-build/src/ucd-tools/libucd.a)
 endif()
 
-#[[
-if(WIN32)
-    # Hint the hidden Git for Windows internal tools directory so the patch cli tool is found.
-    list(APPEND CMAKE_PROGRAM_PATH "C:/Program Files/Git/usr/bin")
+# Windows does not have a patch command and the built-in patch command does not work on a non repo source tree.
+if(CMAKE_HOST_WIN32)
+	find_package(Git QUIET)
+	if(Git_FOUND)
+		get_filename_component(GIT_DIR "${GIT_EXECUTABLE}" DIRECTORY)
+		get_filename_component(GIT_ROOT "${GIT_DIR}" DIRECTORY)
+		# Just add it to the path but using HINTS is also an option.
+		list(APPEND CMAKE_PROGRAM_PATH "${GIT_ROOT}/usr/bin")
+	endif()
 endif()
 
-# Find the required Patch tool.
+# Find the re'Patch_EXECUTABLE' variable.
 find_package(Patch REQUIRED)
-]]
+# Location of the patch file.
+set(_PatchFile "${CMAKE_CURRENT_LIST_DIR}/libpiper/src/espeak.patch")
+# Patch command for when the source is Git cloned.
+#set(_PatchCommand "${GIT_EXECUTABLE}" "apply" "--check" "--reverse" "${_PatchFile}" "||" "${GIT_EXECUTABLE}" "apply" "${_PatchFile}")
+# Patch command when the source is unzipped.
+set(_PatchCommand "${Patch_EXECUTABLE}" "--reverse" "--strip=1" "--input=${_PatchFile}" "||" "${Patch_EXECUTABLE}" "--strip=1" "--input=${_PatchFile}")
 
 # Add the external 'espeak' project and apply the patch to use it as a static library only.
 ExternalProject_Add(espeak_ng_external
@@ -86,8 +96,7 @@ ExternalProject_Add(espeak_ng_external
     # Headers are only importing or exporting functions but no consideration when only as a private static library.
     # Does not make cmake abort when the patch has already been performed by first checking it.
     # Patching with Git is only possible when it is a Git repository.
-    #PATCH_COMMAND "${GIT_EXECUTABLE}" apply --check --reverse "${CMAKE_CURRENT_LIST_DIR}/libpiper/src/espeak.patch" || "${GIT_EXECUTABLE}" apply "${CMAKE_CURRENT_LIST_DIR}/libpiper/src/espeak.patch"
-    #PATCH_COMMAND ${Patch_EXECUTABLE} --dry-run --quiet --force --reverse -p1 < "${CMAKE_CURRENT_LIST_DIR}/libpiper/src/espeak.patch" || patch --force -p1 < "${CMAKE_CURRENT_LIST_DIR}/libpiper/src/espeak.patch"
+    PATCH_COMMAND ${_PatchCommand}
 )
 
 include_directories(

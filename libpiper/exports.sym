@@ -1,8 +1,0 @@
-{
-	global:
-		# Matches all functions prefixed with "piper_".
-		piper_*;
-	local:
-		# Hides everything else, including json.hpp and static libraries.
-		*;
-};

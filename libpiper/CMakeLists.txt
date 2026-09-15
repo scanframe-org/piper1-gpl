@@ -1,6 +1,7 @@
 # Builds libpiper
 cmake_minimum_required(VERSION 3.26)
 
+list(APPEND CMAKE_MESSAGE_INDENT "LibPiper ")
 message(STATUS "SF_COMPILER: ${SF_COMPILER}")
 message(STATUS "SF_EXEC_DIR_SUFFIX: $ENV{SF_EXEC_DIR_SUFFIX}")
 message(STATUS "SF_EXECUTABLE_DIR: $ENV{SF_EXECUTABLE_DIR}")
@@ -8,6 +9,7 @@ message(STATUS "SF_LIBRARY_DIR: $ENV{SF_LIBRARY_DIR}")
 message(STATUS "CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
 message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 message(STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+list(POP_BACK CMAKE_MESSAGE_INDENT)
 
 project(piper LANGUAGES C CXX)
 
@@ -207,15 +209,6 @@ target_link_libraries(piper
     onnxruntime::onnxruntime
 )
 
-# Only export the Piper API functions.
-if(MSVC)
-    # Target properties specifically for MSVC.
-    set_target_properties(piper PROPERTIES LINK_FLAGS "/DEF:\"${CMAKE_CURRENT_SOURCE_DIR}/exports.def\"")
-else()
-    # Target properties for GCC / Linux.
-    target_link_options(piper PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/exports.sym")
-endif()
-
 # ---- libpiper static ---
 
 add_library(piper-static STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/piper.cpp)
@@ -241,7 +234,6 @@ target_link_libraries(piper-static
     ${UCD_STATIC_LIB}
     onnxruntime::onnxruntime
 )
-
 
 # ---- piper exe ---
 add_subdirectory(src/main)
